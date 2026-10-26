@@ -19,6 +19,14 @@ class NemotronClient:
 
     def __init__(self, tier: str = "free"):
         self.api_key = os.getenv("NVIDIA_API_KEY", "")
+        if not self.api_key:
+            try:
+                import streamlit as st
+                if hasattr(st, "secrets") and "NVIDIA_API_KEY" in st.secrets:
+                    self.api_key = str(st.secrets["NVIDIA_API_KEY"]).strip()
+            except Exception:
+                pass
+
         self.tier = tier
         tier_config = get_tier_config(tier)
         self.model = tier_config["model"]

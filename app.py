@@ -18,6 +18,16 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
+# ── Bridge Streamlit Cloud Secrets to os.environ ──────────────────────────────
+import os
+try:
+    if hasattr(st, "secrets"):
+        for sec_key in ["NVIDIA_API_KEY", "TAVILY_API_KEY"]:
+            if sec_key in st.secrets and not os.getenv(sec_key):
+                os.environ[sec_key] = str(st.secrets[sec_key])
+except Exception:
+    pass
+
 # ── Core Architecture Imports ─────────────────────────────────────────────────
 from core.nemotron import NemotronClient
 from core.guardrails import NeMoGuardrails

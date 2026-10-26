@@ -16,6 +16,14 @@ class TavilyMCPSearch:
 
     def __init__(self):
         api_key = os.getenv("TAVILY_API_KEY", "")
+        if not api_key:
+            try:
+                import streamlit as st
+                if hasattr(st, "secrets") and "TAVILY_API_KEY" in st.secrets:
+                    api_key = str(st.secrets["TAVILY_API_KEY"]).strip()
+            except Exception:
+                pass
+
         if api_key:
             self.client = TavilyClient(api_key=api_key)
             self.available = True
