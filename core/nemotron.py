@@ -46,6 +46,17 @@ class NemotronClient:
         except Exception:
             return []
 
+    def chat(self, messages: list, stream: bool = True, model_override: str = None):
+        """Send a chat completion request to NVIDIA endpoint."""
+        model_to_use = model_override or self.model
+        return self.client.chat.completions.create(
+            model=model_to_use,
+            messages=messages,
+            stream=stream,
+            max_tokens=1024,
+            temperature=0.7
+        )
+
     def stream_chat(self, messages: list):
         """
         Stream a chat completion token-by-token.
