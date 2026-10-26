@@ -1,0 +1,26 @@
+# API Keys - NEVER commit these
+.env
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local database and keys (private vault stays on device)
+*.db
+vault.db
+.vault.key
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
