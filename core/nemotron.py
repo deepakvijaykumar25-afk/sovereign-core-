@@ -78,12 +78,17 @@ class NemotronClient:
             "nvidia/llama-3.3-nemotron-super-49b-v1.5"
         ]
 
-        # Dynamically prepend any live models found on this account
+        # Dynamically prepend active chat/instruct models found on this account
         try:
             live_models = self.get_available_models()
             if live_models:
-                # Put active models from account at the front
-                candidate_models = live_models[:5] + candidate_models
+                chat_live = [
+                    m for m in live_models
+                    if any(term in m.lower() for term in ["flash", "instruct", "chat", "nemotron"])
+                    and not any(neg in m.lower() for neg in ["embed", "reward", "fuyu", "starcoder", "guard", "clip"])
+                ]
+                if chat_live:
+                    candidate_models = chat_live[:5] + candidate_models
         except Exception:
             pass
 
