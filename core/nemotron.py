@@ -36,10 +36,11 @@ class NemotronClient:
             api_key=self.api_key if self.api_key else "NO_KEY_SET"
         )
 
-    def chat(self, messages: list, stream: bool = True):
-        """Send a chat completion request to NVIDIA Nemotron."""
+    def chat(self, messages: list, stream: bool = True, model_override: str = None):
+        """Send a chat completion request to NVIDIA Nemotron with fallback."""
+        model_to_use = model_override or self.model
         return self.client.chat.completions.create(
-            model=self.model,
+            model=model_to_use,
             messages=messages,
             stream=stream,
             max_tokens=1024,
@@ -49,20 +50,41 @@ class NemotronClient:
     def stream_chat(self, messages: list):
         """
         Stream a chat completion token-by-token.
-        Yields string chunks for AG-UI live display.
+        Yields string chunks for AG-UI live display with automatic fallback.
         """
-        if not self.api_key:
-            yield "⚠️ NVIDIA_API_KEY is not set. Please add it to your .env file."
+        if not self.api_key or self.api_key == "NO_KEY_SET":
+            yield "⚠️ NVIDIA_API_KEY is not configured in Secrets. Please add it to your Streamlit Cloud secrets."
             return
 
-        try:
-            response = self.chat(messages, stream=True)
-            for chunk in response:
-                # Skip empty chunks (finish_reason chunks have no choices content)
-                if not chunk.choices:
+        candidate_models = [
+            self.model,
+            "nvidia/nemotron-3.5-lightning-30b-a3b",
+            "meta/llama-3.1-70b-instruct"
+        ]
+        # Deduplicate while preserving order
+        unique_candidates = list(dict.fromkeys(candidate_models))
+
+        last_error = None
+        for candidate in unique_candidates:
+            try:
+                response = self.chat(messages, stream=True, model_override=candidate)
+                for chunk in response:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield delta
+                # If stream succeeded, finish
+                return
+            except Exception as e:
+                err_str = str(e)
+                last_error = err_str
+                # If 403 (forbidden/unauthorized model) or 404 (not found), try next model
+                if "403" in err_str or "404" in err_str:
                     continue
-                delta = chunk.choices[0].delta.content
-                if delta:
-                    yield delta
-        except Exception as e:
-            yield f"❌ Nemotron API Error: {str(e)}"
+                else:
+                    yield f"❌ Nemotron API Error: {err_str}"
+                    return
+
+        if last_error:
+            yield f"❌ Nemotron API Error: {last_error}"

@@ -7,7 +7,7 @@ TIERS = {
     "free": {
         "name": "Free",
         "price": "$0/mo",
-        "model": "nvidia/nemotron-3.5-bolt-e4b",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
         "daily_messages": 30,
         "daily_searches": 10,
         "features": ["Basic vault", "Tavily search (limited)", "Wake Word: Nemo"],
