@@ -58,8 +58,9 @@ class NemotronClient:
 
         candidate_models = [
             self.model,
-            "nvidia/nemotron-3.5-lightning-30b-a3b",
-            "meta/llama-3.1-70b-instruct"
+            "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+            "meta/llama-3.3-70b-instruct",
+            "mistralai/mistral-large-3-675b-instruct-2512"
         ]
         # Deduplicate while preserving order
         unique_candidates = list(dict.fromkeys(candidate_models))
@@ -79,8 +80,8 @@ class NemotronClient:
             except Exception as e:
                 err_str = str(e)
                 last_error = err_str
-                # If 403 (forbidden/unauthorized model) or 404 (not found), try next model
-                if "403" in err_str or "404" in err_str:
+                # If 410 (Gone/EOL), 403 (Forbidden), 404 (Not Found), try next model
+                if any(code in err_str for code in ["410", "403", "404", "400"]):
                     continue
                 else:
                     yield f"❌ Nemotron API Error: {err_str}"
