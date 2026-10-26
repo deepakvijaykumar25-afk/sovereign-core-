@@ -192,6 +192,20 @@ with st.sidebar:
     st.markdown(f"**Brain:** `{tcfg['model'].split('/')[-1]}`")
     st.markdown(f"**Security:** {tcfg['security']}")
 
+    # Model Inspector & Custom Model Selector
+    with st.expander("🤖 Model Catalog & Diagnostic", expanded=False):
+        custom_model = st.text_input("Override Model ID (optional):", value="", placeholder="e.g. meta/llama-3.3-70b-instruct")
+        if custom_model.strip():
+            tcfg["model"] = custom_model.strip()
+        if st.button("🔍 Check Models on my NVIDIA Key"):
+            diag_client = get_nemotron()
+            avail = diag_client.get_available_models()
+            if avail:
+                st.success(f"Found {len(avail)} active models on your account!")
+                st.write(avail[:10])
+            else:
+                st.error("No models returned. Verify NVIDIA_API_KEY in Secrets.")
+
     # 2. NVIDIA OPENSHELL SANDBOX GOVERNANCE
     sandbox_policy = OpenShellSandbox.get_tier_policy(selected_tier)
     with st.expander("🛡️ OpenShell Sandbox Boundary", expanded=False):
