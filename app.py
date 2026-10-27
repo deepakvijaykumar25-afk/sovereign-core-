@@ -520,9 +520,10 @@ if prompt:
                 st.write(f"NeMo Policy Guard: `ACTIVE (0 violations)`")
 
                 if active == "hermes":
-                    history = [
+                    clean_history = [
                         {"role": m["role"], "content": m["content"]}
                         for m in st.session_state.messages[:-1]
+                        if not str(m.get("content", "")).startswith("❌")
                     ]
                     system_msg = (
                         f"You are Hermes, the SovereignCore personal AI assistant. "
@@ -530,7 +531,7 @@ if prompt:
                         "You strictly preserve user data sovereignty and privacy. "
                         "Keep your answers insightful, concise, and structured."
                     )
-                    messages = [{"role": "system", "content": system_msg}] + history + [{"role": "user", "content": prompt}]
+                    messages = [{"role": "system", "content": system_msg}] + clean_history + [{"role": "user", "content": prompt}]
                     token_stream = nemotron.stream_chat(messages)
                 else:
                     messages = [
